@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "skillos-strands"
+version = "0.1.0"
+description = "Strands plugin for SkillOS"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+dependencies = [
+    "fsspec>=2023.1.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+s3 = ["s3fs"]
+gcs = ["gcsfs"]
+azure = ["adlfs"]
+dev = ["pytest>=7.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
