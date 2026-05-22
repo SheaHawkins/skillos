@@ -8,15 +8,25 @@ version = "0.1.0"
 description = "Core abstractions for SkillOS"
 readme = "README.md"
 requires-python = ">=3.10"
+license = { file = "LICENSE" }
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 dependencies = [
-    "fsspec>=2023.1.0",
+    "fsspec>=2024.6.0",
     "pyyaml>=6.0",
+    "rank-bm25>=0.2.2",
 ]
 
 [project.optional-dependencies]
-s3 = ["s3fs"]
-gcs = ["gcsfs"]
-azure = ["adlfs"]
+s3    = ["s3fs>=2024.6.0"]
+gcs   = ["gcsfs>=2024.6.0"]
+azure = ["adlfs>=2024.4.0"]
+all   = ["s3fs>=2024.6.0", "gcsfs>=2024.6.0", "adlfs>=2024.4.0"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["skillos_core*"]
