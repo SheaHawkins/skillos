@@ -24,3 +24,7 @@ select = [
     "B",   # flake8-bugbear
     "UP",  # pyupgrade
 ]
+ignore = [
+    "UP007",  # Allow Optional[X] / Union[X, Y] in addition to X | Y
+    "UP045",  # Same, for the newer ruff rule that covers Optional specifically
+]

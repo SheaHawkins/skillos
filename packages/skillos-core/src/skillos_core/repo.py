@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional
 
 import fsspec
 import yaml
@@ -35,7 +35,7 @@ class Skill:
     root: str = field(repr=False)
 
     @property
-    def description(self) -> str | None:
+    def description(self) -> Optional[str]:
         return self.metadata.get("description")
 
     def list_resources(self) -> list[str]:
