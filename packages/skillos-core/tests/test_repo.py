@@ -1,9 +1,7 @@
 from pathlib import Path
 
 import pytest
-
 from skillos_core import Skill, SkillRepo
-
 
 SKILL_MD = """---
 name: hello

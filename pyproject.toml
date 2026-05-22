@@ -2,7 +2,25 @@
 members = ["packages/*"]
 
 [dependency-groups]
-dev = ["pytest>=7.0"]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.7.0",
+    "pre-commit>=3.7.0",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["packages"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterator
 from dataclasses import dataclass, field
-from typing import Any, Iterator
+from typing import Any
 
 import fsspec
 import yaml
@@ -42,7 +43,7 @@ class Skill:
         paths = self.fs.find(self.root, withdirs=False)
         out = []
         for p in paths:
-            rel = p[len(prefix):] if p.startswith(prefix) else p
+            rel = p[len(prefix) :] if p.startswith(prefix) else p
             if rel == SKILL_FILE or not rel:
                 continue
             out.append(rel)
