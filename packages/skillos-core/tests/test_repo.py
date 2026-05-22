@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from skillos_strands import Skill, SkillRepo
+from skillos_core import Skill, SkillRepo
 
 
 SKILL_MD = """---

@@ -8,6 +8,14 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 
+[manifest]
+members = [
+    "skillos-core",
+]
+
+[manifest.dependency-groups]
+dev = [{ name = "pytest", specifier = ">=7.0" }]
+
 [[package]]
 name = "adlfs"
 version = "2026.5.0"
@@ -1546,9 +1554,9 @@ wheels = [
 ]
 
 [[package]]
-name = "skillos-strands"
+name = "skillos-core"
 version = "0.1.0"
-source = { editable = "." }
+source = { editable = "packages/skillos-core" }
 dependencies = [
     { name = "fsspec" },
     { name = "pyyaml" },
@@ -1565,11 +1573,6 @@ s3 = [
     { name = "s3fs" },
 ]
 
-[package.dev-dependencies]
-dev = [
-    { name = "pytest" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "adlfs", marker = "extra == 'azure'" },
@@ -1579,9 +1582,6 @@ requires-dist = [
     { name = "s3fs", marker = "extra == 's3'" },
 ]
 provides-extras = ["s3", "gcs", "azure"]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=7.0" }]
 
 [[package]]
 name = "tomli"
