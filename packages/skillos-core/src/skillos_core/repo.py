@@ -35,8 +35,8 @@ class Skill:
     root: str = field(repr=False)
 
     @property
-    def description(self) -> str:
-        return self.metadata.get("description", "")
+    def description(self) -> str | None:
+        return self.metadata.get("description")
 
     def list_resources(self) -> list[str]:
         prefix = self.root.rstrip("/") + "/"
