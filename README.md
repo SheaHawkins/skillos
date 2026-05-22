@@ -31,7 +31,14 @@ for path in skill.list_resources():
 
 ## Development
 
+This project uses [uv](https://docs.astral.sh/uv/) for environment and
+dependency management. The Python version is pinned in `.python-version`
+and resolved deps are locked in `uv.lock`.
+
 ```
-pip install -e ".[dev]"
-python -m pytest
+uv sync           # create .venv and install all deps (incl. dev group)
+uv run pytest     # run the test suite
 ```
+
+Cloud backends ship as extras: `uv sync --extra s3`, `--extra gcs`,
+`--extra azure`.

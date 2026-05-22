@@ -18,6 +18,8 @@ dependencies = [
 s3 = ["s3fs"]
 gcs = ["gcsfs"]
 azure = ["adlfs"]
+
+[dependency-groups]
 dev = ["pytest>=7.0"]
 
 [tool.setuptools.packages.find]
