@@ -1,3 +1,3 @@
-from .repo import Skill, SkillRepo
+from .repo import License, Skill, SkillRepo
 
-__all__ = ["Skill", "SkillRepo"]
+__all__ = ["License", "Skill", "SkillRepo"]

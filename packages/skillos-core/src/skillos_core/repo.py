@@ -3,7 +3,8 @@ from __future__ import annotations
 import re
 from collections.abc import Iterator
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from enum import Enum
+from typing import Any, Optional, Union
 
 import fsspec
 import yaml
@@ -14,11 +15,35 @@ SKILL_FILE = "SKILL.md"
 #   name:        ≤64 chars, lowercase letters, digits, hyphens; reserved
 #                words "anthropic" and "claude" are not allowed.
 #   description: 1–1024 chars, non-empty.
+# Recognized optional fields: license, allowed-tools, compatibility, metadata.
 # https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview
 NAME_MAX_LEN = 64
 DESCRIPTION_MAX_LEN = 1024
 RESERVED_NAMES = frozenset({"anthropic", "claude"})
 _NAME_RE = re.compile(r"^[a-z0-9-]+$")
+
+
+class License(str, Enum):
+    """SPDX identifiers for the ten most common open-source licenses.
+
+    Used as the default vocabulary for the SKILL.md ``license`` frontmatter
+    field. Accepts string coercion (``License("MIT")``) so callers can pass
+    plain SPDX strings interchangeably.
+    """
+
+    MIT = "MIT"
+    APACHE_2_0 = "Apache-2.0"
+    GPL_3_0 = "GPL-3.0"
+    BSD_3_CLAUSE = "BSD-3-Clause"
+    GPL_2_0 = "GPL-2.0"
+    BSD_2_CLAUSE = "BSD-2-Clause"
+    LGPL_3_0 = "LGPL-3.0"
+    MPL_2_0 = "MPL-2.0"
+    AGPL_3_0 = "AGPL-3.0"
+    UNLICENSE = "Unlicense"
+
+
+LicenseLike = Union[License, str]
 
 _FRONTMATTER_SPLIT = re.compile(r"^---\s*$", re.MULTILINE)
 
@@ -144,27 +169,37 @@ class SkillRepo:
         description: str,
         body: str,
         *,
+        license: LicenseLike = License.MIT,
+        allowed_tools: Optional[list[str]] = None,
+        compatibility: Optional[str] = None,
         metadata: Optional[dict[str, Any]] = None,
     ) -> Skill:
         """Create a new skill named ``name``.
 
-        ``name`` and ``description`` are validated against the SKILL.md
-        spec and written into the frontmatter; any extra fields in
-        ``metadata`` (e.g. ``license``, ``allowed-tools``) are merged in.
-        Raises :class:`FileExistsError` if a skill with this name already
-        exists.
+        Each keyword argument maps to a SKILL.md frontmatter field:
+        ``license`` (SPDX, default MIT, validated against :class:`License`),
+        ``allowed_tools`` (serialized as ``allowed-tools``),
+        ``compatibility``, and ``metadata`` (the spec's nested metadata
+        dict for things like version). ``body`` is the free-form markdown
+        body and is not validated. Raises :class:`FileExistsError` if a
+        skill with this name already exists.
         """
         _validate_name(name)
         _validate_description(description)
         if name in self:
             raise FileExistsError(f"Skill {name!r} already exists")
-        merged: dict[str, Any] = {"name": name, "description": description}
-        if metadata:
-            for key, value in metadata.items():
-                if key in ("name", "description"):
-                    continue
-                merged[key] = value
-        return self._write(name, body, merged)
+        front: dict[str, Any] = {
+            "name": name,
+            "description": description,
+            "license": License(license).value,
+        }
+        if allowed_tools is not None:
+            front["allowed-tools"] = list(allowed_tools)
+        if compatibility is not None:
+            front["compatibility"] = compatibility
+        if metadata is not None:
+            front["metadata"] = dict(metadata)
+        return self._write(name, body, front)
 
     def update(
         self,
@@ -172,26 +207,33 @@ class SkillRepo:
         *,
         body: Optional[str] = None,
         description: Optional[str] = None,
+        license: Optional[LicenseLike] = None,
+        allowed_tools: Optional[list[str]] = None,
+        compatibility: Optional[str] = None,
         metadata: Optional[dict[str, Any]] = None,
     ) -> Skill:
-        """Update body and/or frontmatter of an existing skill.
-
-        ``metadata`` is merged over the existing frontmatter; pass ``None``
-        as a value to drop a key. The skill's ``name`` always tracks the
+        """Partial update of an existing skill. Each keyword argument
+        corresponds to a frontmatter field; ``None`` means leave the
+        existing value unchanged. The skill's ``name`` always tracks the
         directory and cannot be changed here. Raises
         :class:`FileNotFoundError` if the skill does not exist.
         """
         existing = self.read(name)
         new_body = existing.body if body is None else body
-        new_meta: dict[str, Any] = dict(existing.metadata)
-        if metadata:
-            new_meta.update(metadata)
+        front: dict[str, Any] = dict(existing.metadata)
+        front["name"] = name
         if description is not None:
-            new_meta["description"] = description
-        new_meta["name"] = name
-        new_meta = {k: v for k, v in new_meta.items() if v is not None}
-        _validate_description(new_meta.get("description"))
-        return self._write(name, new_body, new_meta)
+            front["description"] = description
+        if license is not None:
+            front["license"] = License(license).value
+        if allowed_tools is not None:
+            front["allowed-tools"] = list(allowed_tools)
+        if compatibility is not None:
+            front["compatibility"] = compatibility
+        if metadata is not None:
+            front["metadata"] = dict(metadata)
+        _validate_description(front.get("description"))
+        return self._write(name, new_body, front)
 
     def delete(self, name: str) -> None:
         """Remove a skill and all its bundled resources."""
