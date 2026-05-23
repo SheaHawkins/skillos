@@ -4,20 +4,44 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      package:
+        description: Workspace package to build and publish
+        required: true
+        default: skillos-core
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.1.0
         with:
           enable-cache: true
 
-      - name: Build skillos-core
-        run: uv build --package skillos-core
+      - name: Determine package
+        id: pkg
+        env:
+          EVENT: ${{ github.event_name }}
+          TAG: ${{ github.event.release.tag_name }}
+          INPUT_PKG: ${{ github.event.inputs.package }}
+        run: |
+          if [ "$EVENT" = "release" ]; then
+            case "$TAG" in
+              *-v*) name="${TAG%-v*}" ;;
+              *) echo "::error::Release tag '$TAG' must match '<package>-vX.Y.Z'"; exit 1 ;;
+            esac
+          else
+            name="$INPUT_PKG"
+          fi
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Build ${{ steps.pkg.outputs.name }}
+        run: uv build --package "${{ steps.pkg.outputs.name }}"
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
