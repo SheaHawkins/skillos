@@ -33,3 +33,6 @@ include = ["skillos_core*"]
 [tool.setuptools_scm]
 root = "../.."
 version_file = "src/skillos_core/_version.py"
+tag_regex = "^skillos-core-v(?P<version>.+)$"
+git_describe_command = ["git", "describe", "--dirty", "--tags", "--long", "--match", "skillos-core-v*"]
+fallback_version = "0.0.0"
