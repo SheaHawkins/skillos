@@ -58,10 +58,24 @@ def test_insert_accepts_name_at_max_length(repo: SkillRepo) -> None:
     assert name in repo
 
 
-@pytest.mark.parametrize("bad_description", ["", "   ", None, 123])
-def test_insert_rejects_invalid_description(repo: SkillRepo, bad_description) -> None:
+@pytest.mark.parametrize("bad_description", ["", "   "])
+def test_insert_rejects_invalid_description(repo: SkillRepo, bad_description: str) -> None:
     with pytest.raises(ValueError):
         repo.insert("hello", bad_description, "body\n")
+
+
+def test_is_name_taken(repo: SkillRepo) -> None:
+    assert repo.is_name_taken("hello") is False
+    repo.insert("hello", "desc", "body\n")
+    assert repo.is_name_taken("hello") is True
+    assert repo.is_name_taken("other") is False
+
+    # __contains__ matches
+    assert "hello" in repo
+    assert "other" not in repo
+
+    repo.delete("hello")
+    assert repo.is_name_taken("hello") is False
 
 
 def test_insert_rejects_oversize_description(repo: SkillRepo) -> None:

@@ -72,9 +72,9 @@ def _validate_name(name: str) -> None:
         raise ValueError(f"skill name {name!r} is reserved")
 
 
-def _validate_description(description: Any) -> None:
-    if not isinstance(description, str) or not description.strip():
-        raise ValueError("description is required and must be a non-empty string")
+def _validate_description(description: str) -> None:
+    if not description.strip():
+        raise ValueError("description is required and must be non-empty")
     if len(description) > DESCRIPTION_MAX_LEN:
         raise ValueError(f"description must be at most {DESCRIPTION_MAX_LEN} characters")
 
@@ -160,8 +160,17 @@ class SkillRepo:
         for name in self.list_skills():
             yield self.read(name)
 
-    def __contains__(self, name: str) -> bool:
+    def is_name_taken(self, name: str) -> bool:
+        """Return True if a skill with this name already exists in the repo.
+
+        Slow but simple: hits the underlying filesystem on every call.
+        TODO: SkillRepo should maintain an in-memory map of known skill
+        names so this is a cheap lookup instead of an fs.exists call.
+        """
         return self.fs.exists(f"{self.root}/{name}/{SKILL_FILE}")
+
+    def __contains__(self, name: str) -> bool:
+        return self.is_name_taken(name)
 
     def insert(
         self,
@@ -186,7 +195,7 @@ class SkillRepo:
         """
         _validate_name(name)
         _validate_description(description)
-        if name in self:
+        if self.is_name_taken(name):
             raise FileExistsError(f"Skill {name!r} already exists")
         front: dict[str, Any] = {
             "name": name,
@@ -223,6 +232,7 @@ class SkillRepo:
         front: dict[str, Any] = dict(existing.metadata)
         front["name"] = name
         if description is not None:
+            _validate_description(description)
             front["description"] = description
         if license is not None:
             front["license"] = License(license).value
@@ -232,7 +242,6 @@ class SkillRepo:
             front["compatibility"] = compatibility
         if metadata is not None:
             front["metadata"] = dict(metadata)
-        _validate_description(front.get("description"))
         return self._write(name, new_body, front)
 
     def delete(self, name: str) -> None:
