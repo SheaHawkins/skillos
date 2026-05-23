@@ -160,17 +160,10 @@ class SkillRepo:
         for name in self.list_skills():
             yield self.read(name)
 
-    def is_name_taken(self, name: str) -> bool:
-        """Return True if a skill with this name already exists in the repo.
-
-        Slow but simple: hits the underlying filesystem on every call.
-        TODO: SkillRepo should maintain an in-memory map of known skill
-        names so this is a cheap lookup instead of an fs.exists call.
-        """
-        return self.fs.exists(f"{self.root}/{name}/{SKILL_FILE}")
-
     def __contains__(self, name: str) -> bool:
-        return self.is_name_taken(name)
+        # TODO: SkillRepo should maintain an in-memory map of known skill
+        # names so this is a cheap lookup instead of an fs.exists call.
+        return self.fs.exists(f"{self.root}/{name}/{SKILL_FILE}")
 
     def insert(
         self,
@@ -195,7 +188,7 @@ class SkillRepo:
         """
         _validate_name(name)
         _validate_description(description)
-        if self.is_name_taken(name):
+        if name in self:
             raise FileExistsError(f"Skill {name!r} already exists")
         front: dict[str, Any] = {
             "name": name,
