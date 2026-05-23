@@ -1667,7 +1667,6 @@ wheels = [
 
 [[package]]
 name = "skillos-core"
-version = "0.1.0"
 source = { editable = "packages/skillos-core" }
 dependencies = [
     { name = "fsspec" },
