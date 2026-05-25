@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "skillos-strands"
 version = "0.1.0"
-description = "Strands Agents analyzer for SkillOS Curator"
+description = "Strands Agents plugin for SkillOS Curator"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
 classifiers = [
@@ -16,7 +16,7 @@ classifiers = [
 ]
 dependencies = [
     "skillos-core",
-    "strands-agents>=0.1",
+    "strands-agents>=1.0",
 ]
 
 [tool.uv.sources]

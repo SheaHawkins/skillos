@@ -2301,7 +2301,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "skillos-core", editable = "packages/skillos-core" },
-    { name = "strands-agents", specifier = ">=0.1" },
+    { name = "strands-agents", specifier = ">=1.0" },
 ]
 
 [[package]]

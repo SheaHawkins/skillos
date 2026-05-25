@@ -43,7 +43,7 @@ def create_skill_tools(repo: SkillRepo) -> list[DecoratedFunctionTool]:
         """Insert a new skill into the repository.
 
         name must be lowercase alphanumeric with hyphens, max 64 chars.
-        description max 1024 chars. license must be a valid SPDX identifier.
+        description max 1024 chars. body is markdown. license must be a valid SPDX identifier.
         """
         kwargs: dict[str, Any] = {"license": license}
         if allowed_tools is not None:
