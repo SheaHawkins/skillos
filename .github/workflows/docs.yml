@@ -6,16 +6,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages
+  group: pages-deploy
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,16 +26,31 @@ jobs:
 
       - run: mkdocs build --strict
 
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
+      - name: Deploy to gh-pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          git fetch origin gh-pages:gh-pages 2>/dev/null || true
+
+          TMP=$(mktemp -d)
+
+          # Preserve preview directories if they exist
+          if git show gh-pages:preview 2>/dev/null; then
+            git archive gh-pages -- preview | tar -x -C "$TMP"
+          fi
+
+          git checkout --orphan gh-pages-tmp
+          git rm -rf . > /dev/null 2>&1 || true
+          cp -r site/* .
+
+          # Restore previews
+          if [ -d "$TMP/preview" ]; then
+            cp -r "$TMP/preview" .
+          fi
+          rm -rf "$TMP"
+
+          git add -A
+          git commit -m "docs: deploy from ${GITHUB_SHA:0:7}"
+          git branch -M gh-pages-tmp gh-pages
+          git push origin gh-pages --force
