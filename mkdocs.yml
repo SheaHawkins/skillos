@@ -35,4 +35,5 @@ nav:
   - Home: index.md
   - Getting Started: getting-started.md
   - API Reference:
-      - skillos-core: api/skillos-core.md
+      - Core (skillos-core): api/skillos-core.md
+      - Strands (skillos-strands): api/skillos-strands.md

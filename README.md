@@ -1,15 +1,21 @@
-# skillos-strands
+# SkillOS
 
-Reference implementation for SkillOS. This is a [uv
+Reference implementation of Google's SkillOS skill format. This is a [uv
 workspace](https://docs.astral.sh/uv/concepts/projects/workspaces/)
 containing the SkillOS packages.
 
-## Packages
+## Architecture
 
-- [`packages/skillos-core/`](packages/skillos-core/) — core abstractions
-  (`SkillRepo`, `Skill`, `Curator`, `AsyncCurator`). Backend-agnostic via fsspec.
-- [`packages/skillos-strands/`](packages/skillos-strands/) — Strands Agents
-  analyzer for the Curator (Amazon Bedrock via `strands-agents`).
+SkillOS separates skill storage from the agent framework you use. A shared
+core handles the repository format and curation interface; SDK-specific
+packages expose that repository in the native idiom of each framework.
+
+| Package | SDK | Description |
+|---------|-----|-------------|
+| [`packages/skillos-core/`](packages/skillos-core/) | — | Core abstractions: `SkillRepo`, `Skill`, `Curator`, `Changelog`. Backend-agnostic via fsspec. |
+| [`packages/skillos-strands/`](packages/skillos-strands/) | Strands Agents | Wraps `SkillRepo` as Strands tools, ready for `Agent(tools=...)`. |
+
+SDK integrations for Google ADK and LangGraph are planned.
 
 ## Development
 
@@ -26,4 +32,5 @@ To work on a single package, run pytest scoped to it:
 
 ```
 uv run pytest packages/skillos-core
+uv run pytest packages/skillos-strands
 ```

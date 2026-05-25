@@ -1,12 +1,27 @@
 # SkillOS
 
-SkillOS is a backend-agnostic skill repository format built on [fsspec](https://filesystem-spec.readthedocs.io/). It lets you store, discover, and manage agent skills — locally, on S3, GCS, Azure, or any filesystem fsspec supports.
+SkillOS is Google's format for packaging, discovering, and managing agent skills. This project is the reference implementation — a backend-agnostic skill repository plus SDK integrations that expose it in the native idiom of each agent framework.
 
-## Packages
+## Architecture
 
-| Package | Description |
-|---------|-------------|
-| [skillos-core](api/skillos-core.md) | Core abstractions: `SkillRepo`, `Skill`, `License`. |
+```
+skillos-core          ← shared interfaces and repo logic (fsspec-backed)
+  ├── SkillRepo       ← read/write skills on local disk, S3, GCS, Azure, …
+  ├── Skill           ← a parsed SKILL.md with metadata + body
+  ├── Curator         ← interface for trace-driven skill curation
+  └── Changelog       ← structured log of insert/update/delete changes
+
+skillos-strands       ← Strands Agents integration
+skillos-adk           ← Google ADK integration          (planned)
+skillos-langgraph     ← LangGraph integration           (planned)
+```
+
+| Package | SDK | Status |
+|---------|-----|--------|
+| `skillos-core` | — | Available |
+| `skillos-strands` | Strands Agents | Available |
+| `skillos-adk` | Google ADK | Planned |
+| `skillos-langgraph` | LangGraph | Planned |
 
 ## Quick example
 
@@ -26,3 +41,5 @@ repo.insert(
     body="# Hello World\n\nThis skill does nothing yet.",
 )
 ```
+
+Pick your SDK in [Getting Started](getting-started.md) to connect the repository to your agent framework.
