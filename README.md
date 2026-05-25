@@ -7,9 +7,9 @@ containing the SkillOS packages.
 ## Packages
 
 - [`packages/skillos-core/`](packages/skillos-core/) — core abstractions
-  (`SkillRepo`, `Skill`). Backend-agnostic via fsspec.
-
-The Strands plugin itself will land alongside core as `packages/skillos-strands/`.
+  (`SkillRepo`, `Skill`, `Curator`, `AsyncCurator`). Backend-agnostic via fsspec.
+- [`packages/skillos-strands/`](packages/skillos-strands/) — Strands Agents
+  analyzer for the Curator (Amazon Bedrock via `strands-agents`).
 
 ## Development
 
