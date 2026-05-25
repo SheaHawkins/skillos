@@ -2,15 +2,19 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
-from skillos_core import SkillRepo
+from skillos_core import Change, ChangeKind, Changelog, SkillRepo
 from strands import tool
 from strands.tools.decorator import DecoratedFunctionTool
 
 
-def create_skill_tools(repo: SkillRepo) -> list[DecoratedFunctionTool]:
+def create_skill_tools(
+    repo: SkillRepo, *, changelog: Optional[Changelog] = None
+) -> list[DecoratedFunctionTool]:
     """Create Strands tools for interacting with a SkillRepo.
 
     Returns a list of tools suitable for passing to ``Agent(tools=...)``.
+    When ``changelog`` is provided, insert/update/delete operations also
+    record each mutation as a :class:`Change` with ``applied`` status.
     """
 
     @tool
@@ -52,8 +56,35 @@ def create_skill_tools(repo: SkillRepo) -> list[DecoratedFunctionTool]:
             kwargs["compatibility"] = compatibility
         if metadata is not None:
             kwargs["metadata"] = metadata
-        skill = repo.insert(name, description, body, **kwargs)
-        return {"name": skill.name, "description": skill.description}
+
+        change = (
+            Change(
+                kind=ChangeKind.INSERT,
+                name=name,
+                description=description,
+                body=body,
+                license=license,
+                allowed_tools=allowed_tools,
+                compatibility=compatibility,
+                metadata=metadata,
+            )
+            if changelog is not None
+            else None
+        )
+        try:
+            repo.insert(name, description, body, **kwargs)
+            if change:
+                change.applied = True
+        except Exception as e:
+            if change:
+                change.applied = False
+                change.error = str(e)
+            raise
+        finally:
+            if change and changelog is not None:
+                changelog.changes.append(change)
+
+        return {"name": name, "applied": True, "error": None}
 
     @tool
     def update_skill(
@@ -82,13 +113,53 @@ def create_skill_tools(repo: SkillRepo) -> list[DecoratedFunctionTool]:
             kwargs["compatibility"] = compatibility
         if metadata is not None:
             kwargs["metadata"] = metadata
-        skill = repo.update(name, **kwargs)
-        return {"name": skill.name, "description": skill.description}
+
+        change = (
+            Change(
+                kind=ChangeKind.UPDATE,
+                name=name,
+                description=description,
+                body=body,
+                license=license,
+                allowed_tools=allowed_tools,
+                compatibility=compatibility,
+                metadata=metadata,
+            )
+            if changelog is not None
+            else None
+        )
+        try:
+            repo.update(name, **kwargs)
+            if change:
+                change.applied = True
+        except Exception as e:
+            if change:
+                change.applied = False
+                change.error = str(e)
+            raise
+        finally:
+            if change and changelog is not None:
+                changelog.changes.append(change)
+
+        return {"name": name, "applied": True, "error": None}
 
     @tool
-    def delete_skill(name: str) -> dict[str, str]:
+    def delete_skill(name: str) -> dict[str, Any]:
         """Delete a skill and all its bundled resources."""
-        repo.delete(name)
-        return {"deleted": name}
+        change = Change(kind=ChangeKind.DELETE, name=name) if changelog is not None else None
+        try:
+            repo.delete(name)
+            if change:
+                change.applied = True
+        except Exception as e:
+            if change:
+                change.applied = False
+                change.error = str(e)
+            raise
+        finally:
+            if change and changelog is not None:
+                changelog.changes.append(change)
+
+        return {"name": name, "applied": True, "error": None}
 
     return [list_skills, read_skill, insert_skill, update_skill, delete_skill]

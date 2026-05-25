@@ -31,7 +31,7 @@ def test_list_skills_empty(tools) -> None:
 def test_insert_and_list(tools) -> None:
     result = tools["insert_skill"](name="hello", description="A greeting skill.", body="# Hello\n")
     assert result["name"] == "hello"
-    assert result["description"] == "A greeting skill."
+    assert result["applied"] is True
     assert tools["list_skills"]() == ["hello"]
 
 
@@ -85,7 +85,7 @@ def test_read_missing_raises(tools) -> None:
 def test_update_description(tools, repo: SkillRepo) -> None:
     tools["insert_skill"](name="hello", description="v1", body="body\n")
     result = tools["update_skill"](name="hello", description="v2")
-    assert result["description"] == "v2"
+    assert result["applied"] is True
     assert repo.read("hello").description == "v2"
 
 
@@ -116,7 +116,7 @@ def test_update_missing_raises(tools) -> None:
 def test_delete_skill(tools, repo: SkillRepo) -> None:
     tools["insert_skill"](name="hello", description="desc", body="body\n")
     result = tools["delete_skill"](name="hello")
-    assert result == {"deleted": "hello"}
+    assert result == {"name": "hello", "applied": True, "error": None}
     assert "hello" not in repo
 
 
