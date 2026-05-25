@@ -1,0 +1,51 @@
+name: Update docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/**"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check for code changes
+        id: changes
+        run: |
+          if git diff --name-only HEAD~1 -- 'packages/*/src/**' | grep -q .; then
+            echo "has_code_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_code_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update docs with Claude
+        if: steps.changes.outputs.has_code_changes == 'true'
+        uses: anthropic/claude-code-action@beta
+        with:
+          prompt: |
+            The public API in packages/skillos-core/src/ has changed.
+            Review the current source code and update the docs/ directory
+            to reflect the actual API surface.
+
+            Rules:
+            - Only document what exists in the source — do not invent features.
+            - Update docs/api/skillos-core.md to match current classes, methods,
+              parameters, and enums.
+            - Update docs/getting-started.md if usage patterns have changed.
+            - Update docs/index.md only if new packages were added.
+            - Keep the existing style and tone.
+            - Run `mkdocs build --strict` to verify the docs build cleanly.
+
+            Create a PR with your changes targeting main.
+            Branch name: docs/auto-update-${{ github.sha }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          allowed_tools: "Bash,Read,Edit,Write,mcp__github__create_pull_request"
