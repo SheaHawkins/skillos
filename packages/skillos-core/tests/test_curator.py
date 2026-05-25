@@ -3,9 +3,15 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from skillos_core import License, SkillRepo
-from skillos_curator import Change, ChangeKind, Changelog, Trace
-from skillos_curator.backends import AsyncCurator
+from skillos_core import (
+    AsyncCurator,
+    Change,
+    ChangeKind,
+    Changelog,
+    License,
+    SkillRepo,
+    Trace,
+)
 
 
 @pytest.fixture

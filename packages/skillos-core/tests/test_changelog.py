@@ -1,4 +1,4 @@
-from skillos_curator import Change, ChangeKind, Changelog
+from skillos_core import Change, ChangeKind, Changelog
 
 
 def test_empty_changelog() -> None:

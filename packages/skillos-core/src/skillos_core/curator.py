@@ -1,13 +1,17 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from collections.abc import Awaitable, Callable
 from typing import Any, Optional
 
-from skillos_core import Skill, SkillRepo
+from .changelog import Change, ChangeKind, Changelog
+from .repo import Skill, SkillRepo
+from .trace import Trace
 
-from ..changelog import Change, ChangeKind, Changelog
-from ..interface import Curator
-from ..trace import Trace
+
+class Curator(ABC):
+    @abstractmethod
+    async def curate(self, trace: Trace) -> Changelog: ...
 
 
 class AsyncCurator(Curator):

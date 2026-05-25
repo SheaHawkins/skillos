@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Optional, Union
 
-from skillos_core import License
+from .repo import License
 
 
 class ChangeKind(str, Enum):

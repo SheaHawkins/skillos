@@ -1,5 +1,5 @@
 from opentelemetry.sdk.trace import TracerProvider
-from skillos_curator import Trace
+from skillos_core import Trace
 
 
 def _make_span(name: str):
