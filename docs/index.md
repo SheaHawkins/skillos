@@ -1,12 +1,17 @@
 # SkillOS
 
-SkillOS is a backend-agnostic skill repository format built on [fsspec](https://filesystem-spec.readthedocs.io/). It lets you store, discover, and manage agent skills — locally, on S3, GCS, Azure, or any filesystem fsspec supports.
+SkillOS is an implementation of Google's [SkillOS paper](https://arxiv.org/abs/2605.06614) — a framework for self-evolving agents that grow and refine a shared library of reusable skills over time.
+
+The repository is split into a **framework-agnostic core** and **SDK-specific integrations**. Pick the integration that matches your agent framework; all of them share the same `SkillRepo` storage format and curation model.
 
 ## Packages
 
 | Package | Description |
 |---------|-------------|
-| [skillos-core](api/skillos-core.md) | Core abstractions: `SkillRepo`, `Skill`, `License`. |
+| [skillos-core](api/skillos-core.md) | Core interfaces and components: `SkillRepo`, `Skill`, `Curator`, `AsyncCurator`, `Changelog`, `Trace`. Backend-agnostic via fsspec. |
+| [skillos-strands](api/skillos-strands.md) | [Strands Agents](https://strandsagents.com) integration — wraps `SkillRepo` as native Strands tools. |
+| skillos-langgraph | _coming soon_ — [LangGraph](https://github.com/langchain-ai/langgraph) integration. |
+| skillos-adk | _coming soon_ — [Google ADK](https://google.github.io/adk-docs/) integration. |
 
 ## Quick example
 
@@ -26,3 +31,13 @@ repo.insert(
     body="# Hello World\n\nThis skill does nothing yet.",
 )
 ```
+
+## How it works
+
+SkillOS models agent self-improvement as a curation loop:
+
+1. The agent runs and produces an OpenTelemetry **Trace**.
+2. A **Curator** (backed by an LLM) analyzes the trace and produces a **Changelog** — a list of insert / update / delete operations.
+3. An **AsyncCurator** applies each change to the **SkillRepo** automatically.
+
+The `SkillRepo` is the durable store. It is backed by [fsspec](https://filesystem-spec.readthedocs.io/), so the same code works against local disk, S3, GCS, Azure, or an in-memory test fixture.
