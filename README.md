@@ -1,8 +1,8 @@
-# skillos-strands
+# skillos
 
-Reference implementation for SkillOS. This is a [uv
-workspace](https://docs.astral.sh/uv/concepts/projects/workspaces/)
-containing the SkillOS packages.
+Implementation of Google's [SkillOS](https://arxiv.org/abs/2605.06614).
+
+Basically, it is a framework for self-evolving agents.
 
 ## Packages
 
