@@ -1,81 +1,164 @@
 # Getting Started
 
-## Installation
+SkillOS speaks three languages — **Strands**, **ADK**, and **LangGraph** — one for each major agent framework. All three share the same `SkillRepo` from `skillos-core`; the SDK package is just the bridge between your framework and the repository.
+
+## 1. Install
+
+=== "Strands"
+
+    ```bash
+    pip install skillos-strands
+    ```
+
+    Requires Python ≥ 3.10 and an AWS account with Amazon Bedrock access.
+
+=== "ADK"
+
+    ```bash
+    pip install skillos-adk   # coming soon
+    ```
+
+=== "LangGraph"
+
+    ```bash
+    pip install skillos-langgraph   # coming soon
+    ```
+
+If you prefer [uv](https://docs.astral.sh/uv/):
 
 ```bash
-pip install skillos-core
+uv add skillos-strands
 ```
 
-Or with [uv](https://docs.astral.sh/uv/):
+---
 
-```bash
-uv add skillos-core
-```
+## 2. Create a skill repository
 
-## Create a skill repository
-
-A skill repository is any directory (or remote path) where each subdirectory contains a `SKILL.md` file.
+A skill repository is a directory (or any remote path) where each subdirectory contains a `SKILL.md` file:
 
 ```
 my-skills/
-├── hello-world/
+├── code-review/
 │   └── SKILL.md
-└── code-review/
+└── summarize/
     ├── SKILL.md
     └── prompt.txt
 ```
 
-## Open and read skills
+Open it with `SkillRepo`:
+
+```python
+from skillos_core import SkillRepo
+
+repo = SkillRepo("./my-skills")           # local
+repo = SkillRepo("s3://bucket/skills")    # S3
+repo = SkillRepo("gs://bucket/skills")    # GCS
+repo = SkillRepo("memory://test-repo")    # in-memory (tests)
+```
+
+---
+
+## 3. Attach a curator
+
+The curator analyses OpenTelemetry traces from your agent runs and updates the skill repository accordingly.
+
+=== "Strands"
+
+    ```python
+    from skillos_core import SkillRepo
+    from skillos_strands import StrandsCurator
+    from strands.models import BedrockModel
+
+    repo = SkillRepo("./my-skills")
+    curator = StrandsCurator(
+        repo,
+        model=BedrockModel("us.amazon.nova-pro-v1:0"),
+    )
+
+    # After each agent run, pass the trace:
+    changelog = await curator.curate(trace)
+    print(f"{len(changelog.applied)} skill(s) changed")
+    ```
+
+=== "ADK"
+
+    ```python
+    # Coming soon
+    from skillos_core import SkillRepo
+    from skillos_adk import ADKCurator
+
+    repo = SkillRepo("./my-skills")
+    curator = ADKCurator(repo, model=...)
+    changelog = await curator.curate(trace)
+    ```
+
+=== "LangGraph"
+
+    ```python
+    # Coming soon
+    from skillos_core import SkillRepo
+    from skillos_langgraph import LangGraphCurator
+
+    repo = SkillRepo("./my-skills")
+    curator = LangGraphCurator(repo, model=...)
+    changelog = await curator.curate(trace)
+    ```
+
+---
+
+## 4. Read and write skills directly
+
+You can also interact with the repository without a curator — useful for seeding initial skills or inspecting the repo.
 
 ```python
 from skillos_core import SkillRepo
 
 repo = SkillRepo("./my-skills")
 
-# list skill names
-print(repo.list_skills())  # ['code-review', 'hello-world']
+# List all skill names
+print(repo.list_skills())   # ['code-review', 'summarize']
 
-# read a specific skill
-skill = repo.read("hello-world")
+# Read a skill
+skill = repo.read("code-review")
 print(skill.description)
 print(skill.body)
-```
 
-## Write skills
+# Iterate
+for skill in repo:
+    print(f"{skill.name}: {skill.description}")
 
-```python
+# Insert
 repo.insert(
-    name="summarize",
-    description="Summarize a document into bullet points.",
-    body="# Summarize\n\nGiven a document, produce a concise summary.",
+    name="hello-world",
+    description="Greet the user. Use when the user asks for a greeting.",
+    body="# Hello World\n\nSay hello to the user.",
     license="MIT",
-    allowed_tools=["Read", "Write"],
+    allowed_tools=["Read", "Bash"],
 )
+
+# Update
+repo.update("hello-world", description="Greet the user warmly.")
+
+# Delete
+repo.delete("hello-world")
 ```
 
-Update an existing skill:
+---
+
+## 5. Remote backends
+
+Because `SkillRepo` uses [fsspec](https://filesystem-spec.readthedocs.io/), any supported protocol works out of the box:
 
 ```python
-repo.update("summarize", description="Summarize any document concisely.")
-```
-
-Delete a skill:
-
-```python
-repo.delete("summarize")
-```
-
-## Remote backends
-
-Because SkillOS uses fsspec, any supported protocol works:
-
-```python
-# S3
+# S3 (pip install skillos-core[s3])
 repo = SkillRepo("s3://my-bucket/skills", anon=False)
 
-# GCS
+# GCS (pip install skillos-core[gcs])
 repo = SkillRepo("gs://my-bucket/skills")
 
-# In-memory (useful for tests)
+# Azure Blob
+repo = SkillRepo("az://my-container/skills")
+
+# In-memory — great for tests
 repo = SkillRepo("memory://test-repo")
 ```

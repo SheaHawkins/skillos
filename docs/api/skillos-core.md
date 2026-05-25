@@ -1,12 +1,20 @@
 # skillos-core API Reference
 
+`skillos-core` provides the interfaces and shared components that all SDK integrations build on.
+
+```bash
+pip install skillos-core
+```
+
+---
+
 ## SkillRepo
 
 ```python
 from skillos_core import SkillRepo
 ```
 
-A repository of skills backed by any fsspec filesystem.
+A repository of skills backed by any [fsspec](https://filesystem-spec.readthedocs.io/) filesystem.
 
 ### `SkillRepo(url, **storage_options)`
 
@@ -83,6 +91,80 @@ Return sorted relative paths of all files in the skill directory, excluding `SKI
 ### `read_resource(path) -> bytes`
 
 Read a bundled resource file by relative path.
+
+---
+
+## Curator
+
+```python
+from skillos_core import Curator
+```
+
+Abstract base class for all curator implementations. SDK-specific packages (`skillos-strands`, `skillos-adk`, `skillos-langgraph`) each provide a concrete subclass.
+
+### `async curate(trace: Trace) -> Changelog`
+
+Analyse the trace and mutate the skill repository as appropriate. Returns a `Changelog` recording every change that was attempted.
+
+---
+
+## Trace
+
+```python
+from skillos_core import Trace
+```
+
+A thin wrapper around an OpenTelemetry trace, used as the input to `Curator.curate`.
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `trace_id` | `str` | The OpenTelemetry trace ID. |
+| `spans` | `Sequence[ReadableSpan]` | Ordered list of spans from the agent run. |
+
+---
+
+## Changelog
+
+```python
+from skillos_core import Changelog
+```
+
+A record of changes produced by a single `Curator.curate` call.
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `changes` | `list[Change]` | All changes attempted (applied and failed). |
+| `applied` | `list[Change]` | Subset that succeeded. |
+| `failed` | `list[Change]` | Subset that failed. |
+
+---
+
+## Change
+
+```python
+from skillos_core import Change, ChangeKind
+```
+
+A single skill mutation recorded in a `Changelog`.
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `kind` | `ChangeKind` | `INSERT`, `UPDATE`, or `DELETE`. |
+| `name` | `str` | Skill name. |
+| `applied` | `bool` | Whether the change was committed successfully. |
+| `error` | `str \| None` | Error message if `applied` is `False`. |
+| `description` | `str \| None` | New description (insert/update). |
+| `body` | `str \| None` | New body (insert/update). |
+| `license` | `License \| str \| None` | New license (insert/update). |
+| `allowed_tools` | `list[str] \| None` | New allowed tools (insert/update). |
+| `compatibility` | `str \| None` | New compatibility (insert/update). |
+| `metadata` | `dict \| None` | New metadata (insert/update). |
 
 ---
 
