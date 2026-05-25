@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "skillos-curator"
+version = "0.1.0"
+description = "Trace-driven skill curation for SkillOS"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "skillos-core",
+    "opentelemetry-api>=1.20",
+    "opentelemetry-sdk>=1.20",
+]
+
+[tool.uv.sources]
+skillos-core = { workspace = true }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["skillos_curator*"]
