@@ -168,6 +168,7 @@ async def test_insert_without_description_fails(repo: SkillRepo) -> None:
     cl = await curator.curate(_make_trace())
 
     assert len(cl.failed) == 1
+    assert cl.failed[0].error is not None
     assert "description" in cl.failed[0].error
     assert "bad" not in repo
 
@@ -185,5 +186,6 @@ async def test_insert_without_body_fails(repo: SkillRepo) -> None:
     cl = await curator.curate(_make_trace())
 
     assert len(cl.failed) == 1
+    assert cl.failed[0].error is not None
     assert "body" in cl.failed[0].error
     assert "bad" not in repo
