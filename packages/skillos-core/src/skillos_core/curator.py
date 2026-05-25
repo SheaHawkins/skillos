@@ -40,10 +40,14 @@ class AsyncCurator(Curator):
 
     def _apply_change(self, change: Change) -> Optional[Skill]:
         if change.kind is ChangeKind.INSERT:
+            if not change.description:
+                raise ValueError("description is required for insert")
+            if not change.body:
+                raise ValueError("body is required for insert")
             return self._repo.insert(
                 change.name,
-                change.description or "",
-                change.body or "",
+                change.description,
+                change.body,
                 **self._optional_kwargs(change),
             )
         if change.kind is ChangeKind.UPDATE:

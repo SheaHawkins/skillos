@@ -156,7 +156,7 @@ async def test_mixed_success_and_failure(repo: SkillRepo) -> None:
 
 
 @pytest.mark.asyncio
-async def test_insert_without_description_fails_validation(repo: SkillRepo) -> None:
+async def test_insert_without_description_fails(repo: SkillRepo) -> None:
     async def analyze(trace: Trace) -> Changelog:
         return Changelog(
             changes=[
@@ -168,4 +168,22 @@ async def test_insert_without_description_fails_validation(repo: SkillRepo) -> N
     cl = await curator.curate(_make_trace())
 
     assert len(cl.failed) == 1
+    assert "description" in cl.failed[0].error
+    assert "bad" not in repo
+
+
+@pytest.mark.asyncio
+async def test_insert_without_body_fails(repo: SkillRepo) -> None:
+    async def analyze(trace: Trace) -> Changelog:
+        return Changelog(
+            changes=[
+                Change(kind=ChangeKind.INSERT, name="bad", description="desc"),
+            ]
+        )
+
+    curator = AsyncCurator(repo, analyze=analyze)
+    cl = await curator.curate(_make_trace())
+
+    assert len(cl.failed) == 1
+    assert "body" in cl.failed[0].error
     assert "bad" not in repo
