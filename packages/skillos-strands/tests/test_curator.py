@@ -4,9 +4,9 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from skillos_core import ChangeKind, Changelog, SkillRepo, Trace
+from skillos_core import ChangeKind, Changelog, ConversationHistory, SkillRepo
 from skillos_strands import StrandsCurator, create_skill_tools
-from skillos_strands.curator import _format_trace
+from skillos_strands.curator import _format_history
 
 
 @pytest.fixture
@@ -19,15 +19,54 @@ def mock_model() -> MagicMock:
     return MagicMock()
 
 
-def _make_trace() -> Trace:
-    return Trace(trace_id="test-trace", spans=[])
+def _sample_history() -> ConversationHistory:
+    return [
+        {"role": "user", "content": "Summarize this PDF."},
+        {
+            "role": "assistant",
+            "content": [
+                {"text": "I'll read the PDF."},
+                {"toolUse": {"name": "Read", "input": {"path": "doc.pdf"}}},
+            ],
+        },
+        {
+            "role": "user",
+            "content": [
+                {"toolResult": {"toolUseId": "t1", "content": [{"text": "PDF text here"}]}},
+            ],
+        },
+        {"role": "assistant", "content": "Here is your summary."},
+    ]
 
 
-def test_format_trace_empty() -> None:
-    t = Trace(trace_id="abc", spans=[])
-    text = _format_trace(t)
-    assert "abc" in text
-    assert "(empty trace)" in text
+def test_format_history_renders_messages() -> None:
+    text = _format_history(_sample_history())
+    assert "[user] Summarize this PDF." in text
+    assert "tool_call: Read" in text
+    assert "tool_result: PDF text here" in text
+    assert "[assistant] Here is your summary." in text
+
+
+def test_format_history_openai_style() -> None:
+    history: ConversationHistory = [
+        {"role": "user", "content": "hello"},
+        {
+            "role": "assistant",
+            "content": "thinking...",
+            "tool_calls": [
+                {"function": {"name": "search", "arguments": '{"q": "test"}'}},
+            ],
+        },
+        {"role": "tool", "content": "search result"},
+    ]
+    text = _format_history(history)
+    assert "[user] hello" in text
+    assert "tool_call: search" in text
+    assert "[tool] search result" in text
+
+
+def test_format_history_empty() -> None:
+    assert _format_history([]) == "(empty conversation)"
 
 
 def test_recording_tools_insert(repo: SkillRepo) -> None:
@@ -125,7 +164,7 @@ async def test_strands_curator_curate(
     mock_agent.invoke_async = AsyncMock(side_effect=fake_invoke)
 
     curator = StrandsCurator(repo, model=mock_model)
-    await curator.curate(_make_trace())
+    await curator.curate(_sample_history())
 
     mock_agent_cls.assert_called_once()
     assert mock_agent_cls.call_args.kwargs["model"] is mock_model
@@ -152,7 +191,7 @@ async def test_strands_curator_records_tool_calls(
     mock_agent.invoke_async = AsyncMock(side_effect=fake_invoke)
 
     curator = StrandsCurator(repo, model=mock_model)
-    cl = await curator.curate(_make_trace())
+    cl = await curator.curate(_sample_history())
 
     assert len(cl.applied) == 1
     assert cl.applied[0].name == "new-skill"

@@ -2253,8 +2253,6 @@ name = "skillos-core"
 source = { editable = "packages/skillos-core" }
 dependencies = [
     { name = "fsspec" },
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-sdk" },
     { name = "pyyaml" },
 ]
 
@@ -2281,8 +2279,6 @@ requires-dist = [
     { name = "fsspec", specifier = ">=2024.6.0" },
     { name = "gcsfs", marker = "extra == 'all'", specifier = ">=2024.6.0" },
     { name = "gcsfs", marker = "extra == 'gcs'", specifier = ">=2024.6.0" },
-    { name = "opentelemetry-api", specifier = ">=1.20" },
-    { name = "opentelemetry-sdk", specifier = ">=1.20" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "s3fs", marker = "extra == 'all'", specifier = ">=2024.6.0" },
     { name = "s3fs", marker = "extra == 's3'", specifier = ">=2024.6.0" },
