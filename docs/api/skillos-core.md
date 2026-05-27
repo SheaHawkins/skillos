@@ -106,3 +106,93 @@ Enum of common SPDX license identifiers. Accepts string coercion (`License("MIT"
 | `MPL_2_0` | `MPL-2.0` |
 | `AGPL_3_0` | `AGPL-3.0` |
 | `UNLICENSE` | `Unlicense` |
+
+---
+
+## Curator
+
+```python
+from skillos_core import Curator
+```
+
+Abstract base class for all curator implementations. SDK-specific packages (`skillos-strands`, `skillos-adk`, `skillos-langgraph`) each provide a concrete subclass.
+
+### `async curate(history: ConversationHistory) -> Changelog`
+
+Analyse a conversation history and apply changes to the skill repository. Returns a `Changelog` recording what was inserted, updated, or deleted.
+
+---
+
+## ConversationHistory
+
+```python
+from skillos_core import ConversationHistory, Message
+```
+
+Type alias for the conversation passed to a curator.
+
+```python
+Message = dict[str, Any]
+ConversationHistory = list[Message]
+```
+
+Each message is a dictionary with at minimum a `"role"` key (`"user"`, `"assistant"`) and a `"content"` key. The content may be a string or a list of content blocks (text, tool calls, tool results) depending on the agent framework.
+
+---
+
+## Changelog
+
+```python
+from skillos_core import Changelog
+```
+
+Record of mutations produced by a single curator run.
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `changes` | `list[Change]` | All changes attempted (applied and failed). |
+| `applied` | `list[Change]` | Changes that succeeded. |
+| `failed` | `list[Change]` | Changes that raised an exception. |
+
+---
+
+## Change
+
+```python
+from skillos_core import Change, ChangeKind
+```
+
+A single mutation record within a `Changelog`.
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `kind` | `ChangeKind` | `INSERT`, `UPDATE`, or `DELETE`. |
+| `name` | `str` | Name of the affected skill. |
+| `applied` | `bool` | `True` if the operation succeeded. |
+| `error` | `str \| None` | Error message if the operation failed. |
+| `description` | `str \| None` | New description (insert/update only). |
+| `body` | `str \| None` | New body (insert/update only). |
+| `license` | `License \| str \| None` | New license (insert/update only). |
+| `allowed_tools` | `list[str] \| None` | New allowed tools (insert/update only). |
+| `compatibility` | `str \| None` | New compatibility string (insert/update only). |
+| `metadata` | `dict \| None` | New metadata (insert/update only). |
+
+---
+
+## ChangeKind
+
+```python
+from skillos_core import ChangeKind
+```
+
+Enum for the type of skill mutation.
+
+| Member | Value |
+|--------|-------|
+| `INSERT` | `"insert"` |
+| `UPDATE` | `"update"` |
+| `DELETE` | `"delete"` |
