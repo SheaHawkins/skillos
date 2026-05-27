@@ -5,6 +5,8 @@ from typing import Any
 
 from skillos_core import Changelog, ConversationHistory, Curator, SkillRepo
 from strands import Agent
+from strands.hooks import AfterInvocationEvent
+from strands.hooks.registry import HookProvider, HookRegistry
 from strands.models import Model
 
 from .tools import create_skill_tools
@@ -72,6 +74,19 @@ def _format_history(history: ConversationHistory) -> str:
     return "\n".join(lines) if lines else "(empty conversation)"
 
 
+class _CuratorHookProvider(HookProvider):
+    def __init__(self, curator: StrandsCurator) -> None:
+        self._curator = curator
+
+    def register_hooks(self, registry: HookRegistry, **kwargs: Any) -> None:
+        registry.add_callback(AfterInvocationEvent, self._on_after_invocation)
+
+    async def _on_after_invocation(self, event: AfterInvocationEvent) -> None:
+        messages: Any = event.agent.messages
+        if messages:
+            await self._curator.curate(messages)
+
+
 class StrandsCurator(Curator):
     """Strands Agent-based Curator that uses tools to mutate a SkillRepo.
 
@@ -90,6 +105,10 @@ class StrandsCurator(Curator):
         self._repo = repo
         self._model = model
         self._system_prompt = system_prompt
+
+    def hook(self) -> HookProvider:
+        """Return a HookProvider for use in ``Agent(hooks=[curator.hook()])``."""
+        return _CuratorHookProvider(self)
 
     async def curate(self, history: ConversationHistory) -> Changelog:
         changelog = Changelog()
