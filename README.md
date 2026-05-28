@@ -35,21 +35,25 @@ pip install skillos-adk
 pip install skillos-langgraph
 ```
 
-All three share the same `SkillRepo` — the SDK package is just the bridge between your framework and the skill repository.
+All three share the same `SkillRepo` from `skillos-core` — the SDK package is just the bridge between your framework and the skill repository.
 
-**Strands example:**
+**Strands example — hook-based (automatic):**
 
 ```python
 from skillos_core import SkillRepo
 from skillos_strands import StrandsCurator
+from strands import Agent
 from strands.models import BedrockModel
 
 repo = SkillRepo("./my-skills")
 curator = StrandsCurator(repo, model=BedrockModel("us.amazon.nova-pro-v1:0"))
 
-# After each agent run, pass the conversation history to the curator
-changelog = await curator.curate(history)
-print(f"{len(changelog.applied)} skill(s) updated")
+# Wire the curator as a hook — skills are updated automatically after every run
+agent = Agent(
+    model=BedrockModel("us.amazon.nova-pro-v1:0"),
+    hooks=[curator.hook()],
+)
+await agent.invoke_async("What tools did you use for that task?")
 ```
 
 ## Development

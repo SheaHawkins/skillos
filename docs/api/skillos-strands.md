@@ -24,9 +24,33 @@ A `Curator` that runs a Strands `Agent` to analyse conversation history and muta
 | `model` | `strands.models.Model` | Any Strands-compatible model (e.g. `BedrockModel`). |
 | `system_prompt` | `str` | Override the default curator system prompt. |
 
+### `hook() -> HookProvider`
+
+Return a Strands [`HookProvider`](https://strandsagents.com/latest/user-guide/concepts/hooks/) that automatically calls `curate()` after every agent invocation. Pass the result to `Agent(hooks=[...])` for zero-touch curation — no extra code in your run loop.
+
+```python
+from skillos_core import SkillRepo
+from skillos_strands import StrandsCurator
+from strands import Agent
+from strands.models import BedrockModel
+
+repo = SkillRepo("./my-skills")
+curator = StrandsCurator(repo, model=BedrockModel("us.amazon.nova-pro-v1:0"))
+
+agent = Agent(
+    model=BedrockModel("us.amazon.nova-pro-v1:0"),
+    hooks=[curator.hook()],
+)
+
+# Curation fires automatically after every invocation
+await agent.invoke_async("Extract text from invoice.pdf")
+```
+
+The hook fires on `AfterInvocationEvent`. If the agent's message list is empty the hook is a no-op.
+
 ### `async curate(history: ConversationHistory) -> Changelog`
 
-Format the conversation history, invoke the Strands agent, and return the resulting `Changelog`.
+Format the conversation history, invoke the Strands agent, and return the resulting `Changelog`. Use this for manual control — e.g. when you receive history from an agent you don't own.
 
 **Example:**
 
@@ -58,7 +82,7 @@ for change in changelog.failed:
 from skillos_strands import create_skill_tools
 ```
 
-Build the list of Strands tools for interacting with a `SkillRepo`. Use this directly when you want to embed skill-management tools into your own Strands agent rather than delegating to `StrandsCurator`.
+Build the list of Strands tools for interacting with a `SkillRepo`. Use this directly when you want to embed skill-management capabilities into your own Strands agent rather than delegating to `StrandsCurator`.
 
 ### `create_skill_tools(repo, *, changelog=None) -> list[DecoratedFunctionTool]`
 

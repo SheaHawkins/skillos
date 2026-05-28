@@ -64,6 +64,35 @@ The curator analyses conversation history from your agent runs and updates the s
 
 === "Strands"
 
+    **Option A — automatic (recommended): wire as a hook**
+
+    Pass `curator.hook()` to `Agent(hooks=[...])` and curation fires automatically after every invocation — no extra code in your run loop:
+
+    ```python
+    from skillos_core import SkillRepo
+    from skillos_strands import StrandsCurator
+    from strands import Agent
+    from strands.models import BedrockModel
+
+    repo = SkillRepo("./my-skills")
+    curator = StrandsCurator(
+        repo,
+        model=BedrockModel("us.amazon.nova-pro-v1:0"),
+    )
+
+    agent = Agent(
+        model=BedrockModel("us.amazon.nova-pro-v1:0"),
+        hooks=[curator.hook()],
+    )
+
+    # Curation fires automatically after this call
+    await agent.invoke_async("Extract text from invoice.pdf")
+    ```
+
+    **Option B — manual: call `curate()` yourself**
+
+    Use this when you receive conversation history from an agent you don't own:
+
     ```python
     from skillos_core import ConversationHistory, SkillRepo
     from skillos_strands import StrandsCurator

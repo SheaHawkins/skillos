@@ -2,7 +2,7 @@
 
 [Strands Agents](https://strandsagents.com) integration for [SkillOS](https://github.com/sheahawkins/skillos).
 
-Implements the `Curator` interface from `skillos-core` using a Strands `Agent` backed by Amazon Bedrock. After each agent run, pass the conversation history to the curator and it will automatically create, update, or delete skills in your `SkillRepo`.
+Implements the `Curator` interface from `skillos-core` using a Strands `Agent` backed by Amazon Bedrock. After each agent run the curator analyses the conversation history and automatically creates, updates, or deletes skills in your `SkillRepo`.
 
 ## Installation
 
@@ -13,6 +13,35 @@ pip install skillos-strands
 Requires Python ≥ 3.10 and an AWS account with Amazon Bedrock access.
 
 ## Quick start
+
+### Hook-based integration (recommended)
+
+Pass `curator.hook()` to `Agent(hooks=[...])` and curation fires automatically after every invocation — no extra code in your run loop:
+
+```python
+from skillos_core import SkillRepo
+from skillos_strands import StrandsCurator
+from strands import Agent
+from strands.models import BedrockModel
+
+repo = SkillRepo("./my-skills")
+curator = StrandsCurator(
+    repo,
+    model=BedrockModel("us.amazon.nova-pro-v1:0"),
+)
+
+agent = Agent(
+    model=BedrockModel("us.amazon.nova-pro-v1:0"),
+    hooks=[curator.hook()],
+)
+
+# The curator runs automatically after this call
+await agent.invoke_async("Extract text from invoice.pdf")
+```
+
+### Manual integration
+
+If you receive history from an agent you don't own, call `curate()` directly:
 
 ```python
 from skillos_core import SkillRepo
@@ -25,7 +54,7 @@ curator = StrandsCurator(
     model=BedrockModel("us.amazon.nova-pro-v1:0"),
 )
 
-# history is a list of role/content message dicts from your agent run
+# history is a list of role/content message dicts
 changelog = await curator.curate(history)
 
 for change in changelog.applied:
