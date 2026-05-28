@@ -10,6 +10,9 @@ Basically, it is a framework for self-evolving agents.
   (`SkillRepo`, `Skill`, `Curator`, `AsyncCurator`). Backend-agnostic via fsspec.
 - [`packages/skillos-strands/`](packages/skillos-strands/) — Strands Agents
   analyzer for the Curator (Amazon Bedrock via `strands-agents`).
+- [`packages/skillos-langchain/`](packages/skillos-langchain/) — LangChain
+  analyzer for the Curator (`LangChainCurator` plus a callback handler that
+  curates skills after an agent run, via `langchain`).
 
 ## Development
 
