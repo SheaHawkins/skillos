@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "skillos-adk"
+version = "0.1.0"
+description = "Google ADK plugin for SkillOS Curator"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "skillos-core",
+    "google-adk>=1.0",
+]
+
+[tool.uv.sources]
+skillos-core = { workspace = true }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["skillos_adk*"]

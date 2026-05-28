@@ -10,6 +10,8 @@ Basically, it is a framework for self-evolving agents.
   (`SkillRepo`, `Skill`, `Curator`, `AsyncCurator`). Backend-agnostic via fsspec.
 - [`packages/skillos-strands/`](packages/skillos-strands/) — Strands Agents
   analyzer for the Curator (Amazon Bedrock via `strands-agents`).
+- [`packages/skillos-adk/`](packages/skillos-adk/) — Google ADK analyzer for the
+  Curator (`ADKCurator` + curator plugin via `google-adk`).
 
 ## Development
 

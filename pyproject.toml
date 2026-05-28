@@ -12,6 +12,9 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["packages"]
+# importlib mode lets packages share test-module basenames (e.g. test_tools.py)
+# without colliding in sys.modules.
+addopts = "--import-mode=importlib"
 
 [tool.ruff]
 line-length = 100
